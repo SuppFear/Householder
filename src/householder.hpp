@@ -1,5 +1,5 @@
-#include "../Dense-CSR/dense_matrix.h"
-#include "../Dense-CSR/vector_operations.h"
+#include "../../Dense-CSR/dense_matrix.h"
+#include "../../Dense-CSR/vector_operations.h"
 #include <cmath>
 
 std::vector<Dense_Matrix> QR (const Dense_Matrix& A){
@@ -72,4 +72,28 @@ std::vector<Dense_Matrix> QR (const Dense_Matrix& A){
     QR[0] = Dense_Matrix(n, q);
     QR[1] = Dense_Matrix(n, a);
     return QR;
+}
+
+std::vector<double> Solve_with_QR (const Dense_Matrix &a, std::vector<double> &b){
+    std::vector<Dense_Matrix> qr = QR(a);
+    size_t n = qr[0].columns();
+    std::vector<double> q = qr[0].get_matrixElemenets();
+    std::vector<double> R = qr[1].get_matrixElemenets();
+    size_t r = q.size() / n;
+    std::vector<double> x = std::vector<double>(n);
+    for (size_t i = 0; i < n; i++){
+        std::vector<double> tmp = std::vector<double>(r);
+        for (size_t j = 0; j < r; j++){
+            tmp[j] = q[j*n+i];
+        }
+        x[i] = tmp * b;
+    }
+    x[r-1] /= qr[1](r-1, n-1);
+    for (int i = r - 2; i>=0; i--){
+        for (size_t j = i + 1; j < n; j++){
+            x[i] -= x[j] * qr[1](i, j);
+        }
+        x[i] /= qr[1](i, i);
+    }
+    return x;
 }
